@@ -6,7 +6,7 @@
 'use strict';
 
 // The expertise handler
-const {handler} = require('./expertise-sdk');
+const {handler} = require('./skill-sdk');
 
 /*************************** Handler Functions ******************************
  *                                                                          *
