@@ -25,7 +25,8 @@
     "winston": "^2.3.1",
     "watson-developer-cloud": "^2.4.3",
     "inquirer" : "3.0.6",
-    "yamljs": "0.3.0"
+    "yamljs": "0.3.0",
+    "skill-sdk":"file:./skill-sdk"
   },
   "devDependencies": {
     "jscs": "^3.0.7",
