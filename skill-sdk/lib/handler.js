@@ -244,7 +244,6 @@ let setupWcs = function (self, wcsUrl, wcsUsername, wcsPassword, versionDate) {
         console.log(err);
         process.exit(0);
     }
-    logger.info('Successfully setup WCS credentials');
 };
 
 /**
