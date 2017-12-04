@@ -88,7 +88,7 @@ SwaggerExpress.create(config, function (err, swaggerExpress) {
 
 });
 let getKeys = function() {
-    return fs.readFileSync(path.join(__dirname, '../../../res/assets/keys.txt'), 'utf8', function(err, contents) {
+    return fs.readFileSync(path.join(process.cwd(), '/res/assets/keys.txt'), 'utf8', function(err, contents) {
         if(err){
             logger.info('could not read keys file, error: ' + err);
             return "";

@@ -26,7 +26,7 @@ let Handler = function () {
 Handler.prototype.initialize = function () {
     this.context = {};
     this.context.skill = {};
-    let rawJson = fs.readFileSync(path.join(__dirname, '../../res/nlu') + '/wcs.json');
+    let rawJson = fs.readFileSync(path.join(process.cwd(), '/res/nlu') + '/wcs.json');
     this.wcsCredentials = JSON.parse(rawJson);
     if (this.wcsCredentials) {
         let credentials = this.wcsCredentials.credentials;
