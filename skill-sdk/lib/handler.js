@@ -9,7 +9,6 @@ const i18 = require('i18next');
 const sprintf = require('i18next-sprintf-postprocessor');
 const Request = require('./request');
 const Response = require('./response');
-const context = require('./context');
 const logger = require('./logger');
 const Conversation = require('watson-developer-cloud/conversation/v1');
 const Promise = require('bluebird');
@@ -38,66 +37,59 @@ Handler.prototype.handleRequest = function (request, callback) {
     logger.info('Request', {request});
     // State and session context for short access
     this.state = request.context.session.attributes.state;
-    this.context = this.context ? this.context : {};
-    this.context.session = request.context.session ? request.context.session.attributes : {};
+    this.context.session = request.context.session.attributes;
     if(request.context.session.skill) {
         this.context.skill = request.context.session.skill.attributes ?
             request.context.session.skill.attributes : this.context.skill;
     }
     this.context.utterance = request.context.application.attributes;
+    console.log(this.context.session);
     // Restore private expertise context
-    context.restoreBeforeRequest(request, (err, doc) => {
-        // Update language
-        i18.changeLanguage(request.language);
-        // The response called on save or end
-        let response = new Response((err, result) => {
-            // Store private expertise context
-            context.storeAfterResponse(request, {}, (err, result) => {
-                // Put the state back
-                request.context.session.attributes.state = this.state;
-                let sessionContext = {
-                    skill: {
-                        attributes: this.context.skill
-                    },
-                    attributes: this.context.session
-                };
-                // Returned context
-                Object.assign(response.response, {
-                    context: {
-                        application: request.context.application,
-                        session: sessionContext
-                    }
-                });
-                // Log the response
-                logger.info('Response', response.response);
-                // Return the response
-                callback(err, response.response);
-            });
+    // Update language
+    i18.changeLanguage(request.language);
+    let response = new Response((err, result) => {
+        request.context.session.attributes.state = this.state;
+        let sessionContext = {
+            skill: {
+                attributes: this.context.skill
+            },
+            attributes: this.context.session
+        };
+        // Returned context
+        Object.assign(response.response, {
+            context: {
+                application: request.context.application,
+                session: sessionContext
+            }
         });
-        // Handle intent
-        try {
-            // Last state
-            let state = this.state || 'DEFAULT';
-            let intent = request.attributes.intent;
-            do {
-                // Get action from state
-                const action = this.states[state].actions[intent] ||
-                    this.states[state].actions.unhandled;
-                // Run action
-                action(request, response);
-                // Update state
-                this.state = response.state || this.state;
-                // Next state or stop (we have the response)
-                state = response.state;
-                intent = response.intent || intent;
-                // Clear, will be set by next action call.
-                delete response.state;
-                delete response.intent;
-            } while (state !== undefined);
-        } catch (err) {
-            callback('fail to run action or not exists');
-        }
+        // Log the response
+        logger.info('Response', response.response);
+        // Return the response
+        callback(err, response.response);
     });
+    // Handle intent
+    try {
+        // Last state
+        let state = this.state || 'DEFAULT';
+        let intent = request.attributes.intent;
+        do {
+            // Get action from state
+            const action = this.states[state].actions[intent] ||
+                this.states[state].actions.unhandled;
+            // Run action
+            action(request, response);
+            // Update state
+            this.state = response.state || this.state;
+            // Next state or stop (we have the response)
+            state = response.state;
+            intent = response.intent || intent;
+            // Clear, will be set by next action call.
+            delete response.state;
+            delete response.intent;
+        } while (state !== undefined);
+    } catch (err) {
+        callback('fail to run action or not exists');
+    }
 };
 
 Handler.prototype.createActionsHandler = function (actions, state = 'DEFAULT') {
